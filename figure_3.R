@@ -56,14 +56,42 @@ binomial_smooth <- function(...) {
   geom_smooth(method = "glm", method.args = list(family = "binomial"),color="black", ...)
 }
 
-short_log <- ggplot(allvegmaster, aes(x=short, y=spp)) + geom_point() +
-  binomial_smooth()+theme_krementz()+xlab("Percent Cover of Annual Moist Soil Vegetation") + ylab("Probability of Sora Presence")
+
+#' A theme that Krementz seems to not hate too much
+#' 
+#' THis function makes ggplots look in a way that my adviser will hopefully not hate
+#' there are no arguments
+#' @keywords ggplot2 
+#' @export
+#' @examples 
+#' ggplot(data=dat, aes(x=x, y=y))+geom_point()+theme_krementz()
+
+
+theme_krementz <- function(){
+  theme(axis.text.x = element_text(size=12,color="black"),
+        axis.text.y = element_text(size=12,color="black"),
+        axis.title=element_text(size=10),
+        plot.background = element_blank(),
+        panel.border=element_blank(),
+        panel.grid.major= element_line(colour=NA), 
+        panel.grid.minor=element_line(colour=NA),
+        title=element_text(size=20),
+        panel.background = element_rect(fill = "white"),
+        axis.line.x=element_line(colour="black"),
+        axis.line.y=element_line(colour="black"),
+        strip.background=element_rect(fill="white", color="black"),
+        strip.text=element_text(size=15))
+}
+
+(short_log <- ggplot(allvegmaster, aes(x=short, y=spp)) + geom_point() +
+  binomial_smooth(size=0.5)+theme_krementz()+xlab("Percent Cover of \nAnnual Moist Soil Vegetation") + ylab("Probability of \nSora Presence"))
+
 
 allvegmast <- allvegmaster %>% 
   mutate(round = paste0("Visit ",round))
 
-water_log <- ggplot(allvegmast, aes(x=averagewater, y=spp)) + geom_point() +
-  binomial_smooth()+ facet_wrap(~round, nrow=1)+theme_krementz()+xlab("Average Water Depth (cm)") + ylab("Probability of Sora Presence")
+(water_log <- ggplot(allvegmast, aes(x=averagewater, y=spp)) + geom_point() +
+  binomial_smooth(size=0.5)+ facet_wrap(~round, nrow=1)+theme_krementz()+xlab("Average Water Depth (cm)") + ylab("Probability of \nSora Presence")+theme(legend.position="none"))
 
 new_dat <- data.frame(plantplant = unique(allvegmaster$plantplant),
                       scale_averagewater=median(allvegmaster$scale_averagewater),
@@ -79,9 +107,9 @@ plantpred$lower <- plantpred$fit - (plantpred$se.fit * 1.96)
 
 plantpred$cat <- new_dat$plantplant
 
-plant_plot <- ggplot(data=plantpred, aes(x=cat, y=fit, ymin=lower, ymax=upper)) + geom_point() + geom_errorbar() + theme_krementz() + ylim(0,1) +xlab("Genus") + theme(axis.title.y=element_blank())
+plant_plot <- ggplot(data=plantpred, aes(x=cat, y=fit, ymin=lower, ymax=upper)) + geom_point() + geom_errorbar() + theme_krementz() + ylim(0,1) + theme(axis.title.y=element_blank())+theme(axis.title.x=element_blank(),axis.text.x=element_text(size=7,ang=45, vjust=0.5))+scale_x_discrete(labels=c("bulrush"=expression(paste(italic("Scirpus"), " spp.")),"cocklebur"=expression(paste(italic("Xanthium"), " spp.")),"grass"=expression(paste(italic("Poaceae"), " spp.")) ,"millet"=expression(paste(italic("Echinochloa"), " spp.")), "smartweed"=expression(paste(italic("Polygonum"), " spp.")),  "spikerush"=expression(paste(italic("Eleocharis"), " spp."))))
 
-png(file="~/Dissertation_Chapter_2_Sora_Habitat/figure_3_log_regression.png", height=10, width=13, units="in", res=600)
+tiff(file="~/Dissertation_Chapter_2_Sora_Habitat/figure_3_log_regression.tiff", height=10, width=13, units="cm", res=1200)
 ggdraw()+
   draw_plot(water_log, 0, 0.5, 1, 0.5)+
   draw_plot(short_log, 0,0,0.5,0.5) +
